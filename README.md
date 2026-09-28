@@ -1,3 +1,4 @@
+
 # ♻️ Smart Waste Management System
 
 A **Java Full Stack Web Application** developed using **Spring Boot**, **Spring Security**, **Spring Data JPA**, **Hibernate**, **Thymeleaf**, and **MySQL** to simplify municipal waste complaint management.
