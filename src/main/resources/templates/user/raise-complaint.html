@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Raise Complaint')}"></head>
+<body class="bg-light">
+
+    <!-- Shared Navigation -->
+    <nav th:replace="~{fragments :: navbar}"></nav>
+
+    <!-- Main Content Grid -->
+    <div class="container-fluid py-4">
+        <div class="row">
+            
+            <!-- Shared Sidebar -->
+            <div th:replace="~{fragments :: sidebar('raise')}"></div>
+            
+            <!-- Form Content -->
+            <main class="col-lg-9 col-md-8 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+                    <div>
+                        <h1 class="h2 fw-bold mb-1">Report Roadside Garbage</h1>
+                        <p class="text-muted">Enter waste accumulation details and capture precise GPS coordinates</p>
+                    </div>
+                </div>
+
+                <div class="glass-card bg-white p-4 p-lg-5 border border-light shadow-sm animate-fade-in">
+                    
+                    <!-- Global Error Message -->
+                    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-3 mb-4" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${errorMessage}">Error Msg</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Raise Complaint Form -->
+                    <form th:action="@{/user/raise-complaint}" th:object="${complaintDto}" method="post" enctype="multipart/form-data" id="complaintForm">
+                        <div class="row g-4">
+                            
+                            <!-- Title -->
+                            <div class="col-lg-8 col-12">
+                                <label for="title" class="form-label">Complaint Title / Heading</label>
+                                <input type="text" class="form-control" id="title" th:field="*{title}" placeholder="e.g. Overflowing garbage bin next to bus stop">
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Title Error</div>
+                            </div>
+
+                            <!-- Waste Category -->
+                            <div class="col-lg-4 col-12">
+                                <label for="category" class="form-label">Waste Category</label>
+                                <select class="form-select" id="category" th:field="*{category}">
+                                    <option value="" selected>-- Select Category --</option>
+                                    <option value="Organic">Organic (Food, Leaves)</option>
+                                    <option value="Plastic">Plastic & Rubber</option>
+                                    <option value="E-waste">Electronic Waste</option>
+                                    <option value="Hazardous">Hazardous (Medical, Chemical)</option>
+                                    <option value="Dry Trash">Dry Recyclable Trash</option>
+                                    <option value="Mixed">Mixed Garbage Pile</option>
+                                </select>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('category')}" th:errors="*{category}">Category Error</div>
+                            </div>
+
+                            <!-- Image Upload -->
+                            <div class="col-lg-6 col-12">
+                                <label class="form-label">Upload Garbage Image <span class="text-danger">*</span></label>
+                                
+                                <ul class="nav nav-tabs mb-2" id="cameraTab" role="tablist">
+                                  <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="file-tab" data-bs-toggle="tab" data-bs-target="#file-upload" type="button" role="tab" aria-controls="file-upload" aria-selected="true"><i class="bi bi-file-earmark-image"></i> Choose File</button>
+                                  </li>
+                                  <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="camera-tab" data-bs-toggle="tab" data-bs-target="#camera-upload" type="button" role="tab" aria-controls="camera-upload" aria-selected="false"><i class="bi bi-camera"></i> Use Camera</button>
+                                  </li>
+                                </ul>
+
+                                <div class="tab-content border rounded p-3 mb-2 bg-light" id="cameraTabContent">
+                                  <div class="tab-pane fade show active" id="file-upload" role="tabpanel" aria-labelledby="file-tab">
+                                      <div class="input-group">
+                                          <span class="input-group-text"><i class="bi bi-image"></i></span>
+                                          <input type="file" class="form-control" id="imageFile" th:field="*{imageFile}" accept="image/*">
+                                      </div>
+                                  </div>
+                                  <div class="tab-pane fade text-center" id="camera-upload" role="tabpanel" aria-labelledby="camera-tab">
+                                      <video id="cameraStream" autoplay playsinline style="width: 100%; max-height: 250px; display: none; border-radius: 8px; object-fit: cover;"></video>
+                                      <img id="photoPreview" style="width: 100%; max-height: 250px; display: none; border-radius: 8px; object-fit: cover;" class="mb-2">
+                                      <canvas id="canvas" style="display: none;"></canvas>
+                                      
+                                      <div class="mt-2">
+                                          <button type="button" id="startCameraBtn" class="btn btn-outline-primary btn-sm"><i class="bi bi-camera-video"></i> Start Camera</button>
+                                          <button type="button" id="captureBtn" class="btn btn-success btn-sm" style="display: none;"><i class="bi bi-record-circle"></i> Capture Photo</button>
+                                          <button type="button" id="retakeBtn" class="btn btn-warning btn-sm" style="display: none;"><i class="bi bi-arrow-counterclockwise"></i> Retake</button>
+                                      </div>
+                                  </div>
+                                </div>
+                                <div class="text-muted small mt-1">Upload a clear photo. Allowed types: jpg, jpeg, png, webp. Max: 10MB.</div>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}">Image Error</div>
+                            </div>
+
+                            <!-- Contact Number -->
+                            <div class="col-lg-6 col-12">
+                                <label for="phone" class="form-label">Emergency Contact Phone Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-telephone-fill"></i></span>
+                                    <input type="text" class="form-control" id="phone" th:field="*{phone}" placeholder="9876543210">
+                                </div>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">Phone Error</div>
+                            </div>
+
+                            <!-- Area Name -->
+                            <div class="col-lg-6 col-12">
+                                <label for="area" class="form-label">Area / Locality Name</label>
+                                <input type="text" class="form-control" id="area" th:field="*{area}" placeholder="e.g. Green Garden Phase 2">
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('area')}" th:errors="*{area}">Area Error</div>
+                            </div>
+
+                            <!-- Landmark -->
+                            <div class="col-lg-6 col-12">
+                                <label for="landmark" class="form-label">Nearest Landmark (Optional)</label>
+                                <input type="text" class="form-control" id="landmark" th:field="*{landmark}" placeholder="e.g. Near Metro Station Gate 1">
+                            </div>
+
+                            <!-- Geolocation Coordinates (Hidden inputs, managed by main.js) -->
+                            <input type="hidden" id="latitude" th:field="*{latitude}">
+                            <input type="hidden" id="longitude" th:field="*{longitude}">
+
+                            <!-- GPS Location Capture Section -->
+                            <div class="col-12">
+                                <label class="form-label d-block">GPS Coordinates Location Tracking</label>
+                                <div class="p-3 border border-light rounded-3 bg-light d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                    <div id="location-status">
+                                        <span class="text-muted"><i class="bi bi-geo-alt"></i> Geolocation pending approval.</span>
+                                    </div>
+                                    <button class="btn btn-outline-success btn-sm rounded-pill px-3" id="btn-get-location">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh Coordinates
+                                    </button>
+                                </div>
+                                <div class="text-muted small mt-1"><i class="bi bi-info-circle"></i> GPS coords are captured automatically via HTML5 Geolocation. Enable browser location services.</div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-12">
+                                <label for="description" class="form-label">Brief Description of Complaint</label>
+                                <textarea class="form-control" id="description" th:field="*{description}" rows="4" placeholder="Describe the size of the garbage heap, bad smell details, or if it requires urgent removal..."></textarea>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description Error</div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="col-12 mt-4 text-end">
+                                <a th:href="@{/user/dashboard}" class="btn btn-outline-secondary rounded-pill px-4 py-2 me-2">Cancel</a>
+                                <button type="submit" class="btn btn-success rounded-pill px-5 py-2">
+                                    <i class="bi bi-send-fill me-2"></i>Submit Complaint
+                                </button>
+                            </div>
+
+                        </div>
+                    </form>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Script for Live Camera -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const startCameraBtn = document.getElementById('startCameraBtn');
+            const captureBtn = document.getElementById('captureBtn');
+            const retakeBtn = document.getElementById('retakeBtn');
+            const cameraStream = document.getElementById('cameraStream');
+            const photoPreview = document.getElementById('photoPreview');
+            const canvas = document.getElementById('canvas');
+            const imageFileInput = document.getElementById('imageFile');
+            
+            let stream = null;
+
+            const fileTab = document.getElementById('file-tab');
+            if(fileTab) {
+                fileTab.addEventListener('click', () => {
+                    stopCamera();
+                });
+            }
+
+            if(startCameraBtn) {
+                startCameraBtn.addEventListener('click', async () => {
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                        cameraStream.srcObject = stream;
+                        cameraStream.style.display = 'block';
+                        photoPreview.style.display = 'none';
+                        
+                        startCameraBtn.style.display = 'none';
+                        captureBtn.style.display = 'inline-block';
+                        retakeBtn.style.display = 'none';
+                    } catch (err) {
+                        alert('Unable to access camera: ' + err.message);
+                    }
+                });
+            }
+
+            if(captureBtn) {
+                captureBtn.addEventListener('click', () => {
+                    canvas.width = cameraStream.videoWidth;
+                    canvas.height = cameraStream.videoHeight;
+                    canvas.getContext('2d').drawImage(cameraStream, 0, 0, canvas.width, canvas.height);
+                    
+                    photoPreview.src = canvas.toDataURL('image/jpeg');
+                    cameraStream.style.display = 'none';
+                    photoPreview.style.display = 'block';
+                    
+                    canvas.toBlob((blob) => {
+                        const file = new File([blob], "camera-photo.jpg", { type: "image/jpeg" });
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+                        imageFileInput.files = dataTransfer.files;
+                    }, 'image/jpeg', 0.9);
+                    
+                    captureBtn.style.display = 'none';
+                    retakeBtn.style.display = 'inline-block';
+                });
+            }
+
+            if(retakeBtn) {
+                retakeBtn.addEventListener('click', () => {
+                    cameraStream.style.display = 'block';
+                    photoPreview.style.display = 'none';
+                    
+                    captureBtn.style.display = 'inline-block';
+                    retakeBtn.style.display = 'none';
+                    
+                    imageFileInput.value = '';
+                });
+            }
+
+            function stopCamera() {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    stream = null;
+                }
+                if(cameraStream) cameraStream.style.display = 'none';
+                if(startCameraBtn) startCameraBtn.style.display = 'inline-block';
+                if(captureBtn) captureBtn.style.display = 'none';
+            }
+        });
+    </script>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments :: footer}"></footer>
+
+</body>
+</html>

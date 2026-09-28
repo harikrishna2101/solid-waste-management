@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments :: head('Home')}"></head>
+<body>
+
+    <!-- Shared Navigation -->
+    <nav th:replace="~{fragments :: navbar}"></nav>stop
+    
+
+    <!-- Hero Section -->
+    <header class="hero-section text-white d-flex align-items-center">
+        <div class="container text-center text-lg-start">
+            <div class="row align-items-center">
+                <div class="col-lg-7 hero-text">
+                    <h1 class="display-3 fw-bold mb-3">Clean City,<br><span class="text-success">Healthy Future</span></h1>
+                    <p class="lead mb-4 fs-4 opacity-90">Report roadside waste instantly by uploading an image and sharing your location. Help our sanitation workers clean up your neighborhood in record time!</p>
+                    <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-3">
+                        <a th:href="@{/user/raise-complaint}" class="btn btn-success btn-lg rounded-pill px-4 py-3 shadow-lg">
+                            <i class="bi bi- megaphone me-2"></i>Report Waste Now
+                        </a>
+                        <a href="#about" class="btn btn-outline-light btn-lg rounded-pill px-4 py-3">
+                            <i class="bi bi-info-circle me-2"></i>Learn More
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Statistics Section -->
+    <section class="py-5 bg-white shadow-sm position-relative" style="margin-top: -50px; z-index: 10;">
+        <div class="container">
+            <div class="row g-4 justify-content-center">
+                <!-- Total Complaints -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="glass-card text-center p-4 h-100 bg-white border border-light">
+                        <div class="stat-icon"><i class="bi bi-folder-fill text-primary"></i></div>
+                        <div class="stat-card-title text-uppercase font-monospace">Total Complaints</div>
+                        <div class="stat-card-value text-primary" th:text="${totalComplaints}">0</div>
+                        <p class="text-muted mb-0">Reported by citizens</p>
+                    </div>
+                </div>
+                <!-- Pending Complaints -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="glass-card text-center p-4 h-100 bg-white border border-light">
+                        <div class="stat-icon"><i class="bi bi-clock-history text-warning"></i></div>
+                        <div class="stat-card-title text-uppercase font-monospace">Pending Cleaning</div>
+                        <div class="stat-card-value text-warning" th:text="${pendingComplaints}">0</div>
+                        <p class="text-muted mb-0">Awaiting assignment</p>
+                    </div>
+                </div>
+                <!-- Resolved Complaints -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="glass-card text-center p-4 h-100 bg-white border border-light">
+                        <div class="stat-icon"><i class="bi bi-check-circle-fill text-success"></i></div>
+                        <div class="stat-card-title text-uppercase font-monospace">Resolved Cases</div>
+                        <div class="stat-card-value text-success" th:text="${resolvedComplaints}">0</div>
+                        <p class="text-muted mb-0">Successfully cleaned</p>
+                    </div>
+                </div>
+                <!-- Registered Citizens -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="glass-card text-center p-4 h-100 bg-white border border-light">
+                        <div class="stat-icon"><i class="bi bi-people-fill text-info"></i></div>
+                        <div class="stat-card-title text-uppercase font-monospace">Active Citizens</div>
+                        <div class="stat-card-value text-info" th:text="${registeredCitizens}">0</div>
+                        <p class="text-muted mb-0">Registered in portal</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-5">
+        <div class="container py-4">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <img src="https://images.unsplash.com/photo-1618477388954-7852f32655ec?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Clean City Volunteers" class="img-fluid rounded-4 shadow-lg">
+                </div>
+                <div class="col-lg-6">
+                    <span class="text-success fw-bold text-uppercase font-monospace">About the Initiative</span>
+                    <h2 class="display-5 fw-bold mt-2 mb-4">Combating Garbage Accumulation for a Healthier City</h2>
+                    <p class="text-muted mb-3">Our municipality is dedicated to maintaining the highest sanitation standards. However, unscheduled garbage dumping in residential areas and public places often stays unattended between weekly collection schedules, giving rise to toxic odors, insect infestations, and health risks.</p>
+                    <p class="text-muted mb-4">The <strong>Smart Waste Management System</strong> offers an immediate, digital direct-response platform. Citizens can photograph illegal dump locations on their phones, and our system automatically appends GPS coordinates, alerting sanitation officers and dispatching cleaning teams immediately.</p>
+                    <a th:href="@{/register}" class="btn btn-success rounded-pill px-4 py-2">Join as a Citizen</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="py-5 bg-light">
+        <div class="container py-4 text-center">
+            <span class="text-success fw-bold text-uppercase font-monospace">Features & Services</span>
+            <h2 class="display-5 fw-bold mt-2 mb-5">How We Keep the City Clean</h2>
+            <div class="row g-4 text-start">
+                <!-- Card 1 -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card p-4 h-100 bg-white">
+                        <div class="stat-icon"><i class="bi bi-camera-fill"></i></div>
+                        <h4 class="fw-bold mb-3">Image Upload</h4>
+                        <p class="text-muted">Take a photo of the accumulated waste. Images verify the complaint scope and allow workers to prepare correct cleaning tools.</p>
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card p-4 h-100 bg-white">
+                        <div class="stat-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                        <h4 class="fw-bold mb-3">GPS Location Capture</h4>
+                        <p class="text-muted">HTML5 Geolocation API maps precise coordinates (latitude & longitude) automatically, leading workers straight to the garbage spot.</p>
+                    </div>
+                </div>
+                <!-- Card 3 -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card p-4 h-100 bg-white">
+                        <div class="stat-icon"><i class="bi bi-search"></i></div>
+                        <h4 class="fw-bold mb-3">Complaint Tracking</h4>
+                        <p class="text-muted">Citizens can log in to view historical submissions, status updates, and review remarks from supervisors and cleaners.</p>
+                    </div>
+                </div>
+                <!-- Card 4 -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card p-4 h-100 bg-white">
+                        <div class="stat-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+                        <h4 class="fw-bold mb-3">Fast Municipal Response</h4>
+                        <p class="text-muted">Real-time dashboards allow administrators to monitor newly reported waste items and authorize action immediately.</p>
+                    </div>
+                </div>
+                <!-- Card 5 -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card p-4 h-100 bg-white">
+                        <div class="stat-icon"><i class="bi bi-person-check-fill"></i></div>
+                        <h4 class="fw-bold mb-3">Worker Assignment</h4>
+                        <p class="text-muted">Admins assign cleaning work directly to localized field workers. Workers check tasks on their phone-friendly dashboards.</p>
+                    </div>
+                </div>
+                <!-- Card 6 -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="glass-card p-4 h-100 bg-white">
+                        <div class="stat-icon"><i class="bi bi-check-all"></i></div>
+                        <h4 class="fw-bold mb-3">Before & After Verification</h4>
+                        <p class="text-muted">Completed tickets require workers to upload an 'After Cleaning' photo, ensuring the spot is clean before closure.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="py-5 bg-white">
+        <div class="container py-4 text-center">
+            <span class="text-success fw-bold text-uppercase font-monospace">Quick Guide</span>
+            <h2 class="display-5 fw-bold mt-2 mb-5">System Workflow</h2>
+            <div class="row g-4 justify-content-center">
+                <div class="col-lg-3 col-md-6">
+                    <div class="p-3">
+                        <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center fs-3 mb-3" style="width: 60px; height: 60px;">1</div>
+                        <h5 class="fw-bold">Report Waste</h5>
+                        <p class="text-muted sm">Citizen logs in, uploads waste image. Coordinates are captured automatically.</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="p-3">
+                        <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center fs-3 mb-3" style="width: 60px; height: 60px;">2</div>
+                        <h5 class="fw-bold">Admin Review</h5>
+                        <p class="text-muted sm">Municipal admin inspects complaint, checks details, and assigns a local worker.</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="p-3">
+                        <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center fs-3 mb-3" style="width: 60px; height: 60px;">3</div>
+                        <h5 class="fw-bold">Worker Dispatch</h5>
+                        <p class="text-muted sm">Worker navigates to GPS location, marks status as 'In Progress', and clears trash.</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="p-3">
+                        <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center fs-3 mb-3" style="width: 60px; height: 60px;">4</div>
+                        <h5 class="fw-bold">Close Ticket</h5>
+                        <p class="text-muted sm">Worker uploads 'After Cleaning' photo and marks complete. Citizen views update.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-5 bg-light">
+        <div class="container py-4">
+            <div class="row g-4 justify-content-center">
+                <div class="col-lg-6 text-center text-lg-start">
+                    <span class="text-success fw-bold text-uppercase font-monospace">Need Support?</span>
+                    <h2 class="display-5 fw-bold mt-2 mb-4">Contact Our Offices</h2>
+                    <p class="text-muted mb-4">For immediate inquiries, feedback, or grievance redressal regarding sanitation workers, feel free to write to us or call our Toll-Free sanitation line.</p>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-white rounded-circle p-2 shadow-sm text-success me-3"><i class="bi bi-telephone-fill fs-5"></i></div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">Toll Free Support</h6>
+                            <p class="text-muted mb-0">+1 800 555 0199</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-white rounded-circle p-2 shadow-sm text-success me-3"><i class="bi bi-envelope-at-fill fs-5"></i></div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">Email Helpdesk</h6>
+                            <p class="text-muted mb-0">support@municipal.gov</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="glass-card p-4 bg-white border border-light">
+                        <form>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Your Name</label>
+                                    <input type="text" class="form-control" placeholder="Enter name">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" placeholder="Enter email">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Message Subject</label>
+                                    <input type="text" class="form-control" placeholder="Subject">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Your Message</label>
+                                    <textarea class="form-control" rows="4" placeholder="Write message details..."></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <button class="btn btn-success w-100 rounded-pill py-2 mt-2">Send Message</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments :: footer}"></footer>
+
+</body>
+</html>

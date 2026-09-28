@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Worker Dashboard')}"></head>
+<body class="bg-light">
+
+    <!-- Shared Navigation -->
+    <nav th:replace="~{fragments :: navbar}"></nav>
+
+    <!-- Main Content Grid -->
+    <div class="container-fluid py-4">
+        <div class="row">
+            
+            <!-- Shared Sidebar -->
+            <div th:replace="~{fragments :: sidebar('dashboard')}"></div>
+            
+            <!-- Worker Dashboard Content -->
+            <main class="col-lg-9 col-md-8 px-md-4">
+                
+                <!-- Header Banner -->
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+                    <div>
+                        <h1 class="h2 fw-bold mb-1">Worker Task Board</h1>
+                        <p class="text-muted">Welcome, <span th:text="${worker.name}" class="text-success fw-bold">Worker</span> | Assigned zone: <span th:text="${worker.assignedArea}" class="fw-bold text-success">Territory</span></p>
+                    </div>
+                </div>
+
+                <!-- Action Alerts -->
+                <div th:if="${param.started}" class="alert alert-info alert-dismissible fade show rounded-3 mb-3 animate-fade-in" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i>Task started! Status updated to 'In Progress'. Clean the area and take an 'After Cleaning' photo.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${param.completed}" class="alert alert-success alert-dismissible fade show rounded-3 mb-3 animate-fade-in" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>Great job! Task completed and 'After Cleaning' report uploaded.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <!-- Stats Summary Row -->
+                <div class="row g-3 mb-4 animate-fade-in">
+                    <!-- Total -->
+                    <div class="col-lg-3 col-6">
+                        <div class="glass-card bg-white p-3 border border-light text-center">
+                            <div class="fs-1 text-primary"><i class="bi bi-journal-check"></i></div>
+                            <div class="stat-card-title mt-2">Total Assigned</div>
+                            <div class="stat-card-value" th:text="${totalCount}">0</div>
+                        </div>
+                    </div>
+                    <!-- New (Assigned) -->
+                    <div class="col-lg-3 col-6">
+                        <div class="glass-card bg-white p-3 border border-light text-center">
+                            <div class="fs-1 text-info"><i class="bi bi-bell-fill"></i></div>
+                            <div class="stat-card-title mt-2">New Tickets</div>
+                            <div class="stat-card-value" th:text="${pendingCount}">0</div>
+                        </div>
+                    </div>
+                    <!-- In Progress -->
+                    <div class="col-lg-3 col-6">
+                        <div class="glass-card bg-white p-3 border border-light text-center">
+                            <div class="fs-1 text-warning"><i class="bi bi-truck"></i></div>
+                            <div class="stat-card-title mt-2">In Progress</div>
+                            <div class="stat-card-value" th:text="${progressCount}">0</div>
+                        </div>
+                    </div>
+                    <!-- Completed -->
+                    <div class="col-lg-3 col-6">
+                        <div class="glass-card bg-white p-3 border border-light text-center">
+                            <div class="fs-1 text-success"><i class="bi bi-check-circle-fill"></i></div>
+                            <div class="stat-card-title mt-2">Completed</div>
+                            <div class="stat-card-value" th:text="${completedCount}">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task Table List -->
+                <div class="glass-card bg-white p-4 border border-light shadow-sm animate-fade-in">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-clipboard-data text-success me-2"></i>My Job Assignments</h5>
+                        <span class="badge bg-success rounded-pill px-3 py-1 font-monospace" th:text="${#lists.size(complaints)} + ' Total'">0</span>
+                    </div>
+
+                    <div class="table-responsive" th:if="${not #lists.isEmpty(complaints)}">
+                        <table class="table custom-table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Image</th>
+                                    <th>Area / Details</th>
+                                    <th>Citizen Contact</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="c : ${complaints}">
+                                    <td class="font-monospace fw-bold text-dark" th:text="${c.complaintId}">COMP-123456</td>
+                                    <td>
+                                        <div class="complaint-img-container">
+                                            <img th:src="${#strings.startsWith(c.imagePath, 'http') ? c.imagePath : '/uploads/' + c.imagePath}" alt="Garbage Image">
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark" th:text="${c.area}">Area Name</div>
+                                        <small class="text-muted" th:text="${c.landmark != null && !c.landmark.isEmpty()} ? 'Near: ' + ${c.landmark} : 'No Landmark'"></small>
+                                    </td>
+                                    <td>
+                                        <div class="fw-medium text-dark" th:text="${c.citizen.name}">Citizen Name</div>
+                                        <small class="text-muted" th:text="${c.phone}">9876543210</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger rounded-pill" th:if="${c.priority == 'High'}" th:text="${c.priority}">High</span>
+                                        <span class="badge bg-warning text-dark rounded-pill" th:if="${c.priority == 'Medium'}" th:text="${c.priority}">Medium</span>
+                                        <span class="badge bg-info text-dark rounded-pill" th:if="${c.priority == 'Low' || c.priority == null}" th:text="${c.priority != null ? c.priority : 'Low'}">Low</span>
+                                    </td>
+                                    <td>
+                                        <span th:class="'badge-' + ${#strings.toLowerCase(c.status)}" th:text="${c.status}">ASSIGNED</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <!-- Actions: Start Task / Review -->
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <!-- Start Work if only ASSIGNED -->
+                                            <form th:action="@{/worker/start-work}" method="post" th:if="${'ASSIGNED'.equals(c.status)}" class="d-inline">
+                                                <input type="hidden" name="complaintId" th:value="${c.id}">
+                                                <button type="submit" class="btn btn-sm btn-outline-warning rounded-pill px-3">
+                                                    <i class="bi bi-play-fill me-1"></i>Start Job
+                                                </button>
+                                            </form>
+                                            
+                                            <!-- Review & Complete -->
+                                            <a th:href="@{'/worker/complaints/' + ${c.id}}" class="btn btn-sm btn-success rounded-pill px-3">
+                                                <i class="bi bi-clipboard-check me-1"></i>Resolve
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="text-center py-5" th:if="${#lists.isEmpty(complaints)}">
+                        <div class="fs-1 text-muted"><i class="bi bi-shield-check"></i></div>
+                        <h5 class="fw-bold mt-3 text-dark">No tasks assigned!</h5>
+                        <p class="text-muted">You do not have any garbage clean-up tickets assigned at the moment.</p>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments :: footer}"></footer>
+
+</body>
+</html>

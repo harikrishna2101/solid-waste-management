@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Manage Complaints')}"></head>
+<body class="bg-light">
+
+    <!-- Shared Navigation -->
+    <nav th:replace="~{fragments :: navbar}"></nav>
+
+    <!-- Main Content Grid -->
+    <div class="container-fluid py-4">
+        <div class="row">
+            
+            <!-- Shared Sidebar -->
+            <div th:replace="~{fragments :: sidebar('manage-complaints')}"></div>
+            
+            <!-- Manage Content -->
+            <main class="col-lg-9 col-md-8 px-md-4">
+                
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+                    <div>
+                        <h1 class="h2 fw-bold mb-1">Manage Citizen Complaints</h1>
+                        <p class="text-muted">Review reports, assign workers, and update operational statuses.</p>
+                    </div>
+                </div>
+
+                <!-- Alert Banners -->
+                <div th:if="${param.assigned}" class="alert alert-success alert-dismissible fade show rounded-3 mb-3" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>Worker assigned and dispatched successfully!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${param.updated}" class="alert alert-info alert-dismissible fade show rounded-3 mb-3" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i>Complaint status updated successfully.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${param.deleted}" class="alert alert-warning alert-dismissible fade show rounded-3 mb-3" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Complaint report deleted from system records.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show rounded-3 mb-3" role="alert">
+                    <i class="bi bi-x-circle-fill me-2"></i><strong>Error:</strong> <span th:text="${param.error}">Error message</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <!-- Search and Filter Form -->
+                <div class="glass-card bg-white p-3 border border-light shadow-sm mb-4">
+                    <form th:action="@{/admin/manage-complaints}" method="get" class="row g-2 align-items-center">
+                        <!-- Keyword Query -->
+                        <div class="col-md-5">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                                <input type="text" name="query" th:value="${query}" class="form-control" placeholder="Search by ID, Area, Keyword...">
+                            </div>
+                        </div>
+                        
+                        <!-- Status Filter -->
+                        <div class="col-md-2">
+                            <select name="status" class="form-select form-select-sm">
+                                <option value="ALL" th:selected="${status == 'ALL'}">All Statuses</option>
+                                <option value="PENDING" th:selected="${status == 'PENDING'}">Pending (Unassigned)</option>
+                                <option value="ASSIGNED" th:selected="${status == 'ASSIGNED'}">Assigned (Dispatched)</option>
+                                <option value="IN_PROGRESS" th:selected="${status == 'IN_PROGRESS'}">In Progress</option>
+                                <option value="COMPLETED" th:selected="${status == 'COMPLETED'}">Completed (Cleaned)</option>
+                                <option value="REJECTED" th:selected="${status == 'REJECTED'}">Rejected</option>
+                            </select>
+                        </div>
+
+                        <!-- Sort By -->
+                        <div class="col-md-3">
+                            <select name="sort" class="form-select form-select-sm">
+                                <option value="date,desc" th:selected="${sort == 'date,desc'}">Newest First</option>
+                                <option value="date,asc" th:selected="${sort == 'date,asc'}">Oldest First</option>
+                                <option value="priority,desc" th:selected="${sort == 'priority,desc'}">Priority (High-Low)</option>
+                            </select>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="col-md-2 d-flex gap-2">
+                            <button type="submit" class="btn btn-sm btn-success rounded-pill px-2 flex-grow-1">Go</button>
+                            <a th:href="@{/admin/manage-complaints}" class="btn btn-sm btn-outline-secondary rounded-pill px-2">Reset</a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Complaints Table -->
+                <div class="glass-card bg-white p-4 border border-light shadow-sm animate-fade-in">
+                    <div class="table-responsive" th:if="${not #lists.isEmpty(complaints)}">
+                        <table class="table custom-table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Image</th>
+                                    <th>Citizen Name</th>
+                                    <th>Area / Date</th>
+                                    <th>Status</th>
+                                    <th>Worker Assignment / Rejection</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="c : ${complaints}">
+                                    <!-- ID -->
+                                    <td class="font-monospace fw-bold text-dark" th:text="${c.complaintId}">COMP-123456</td>
+                                    
+                                    <!-- Image -->
+                                    <td>
+                                        <div class="complaint-img-container">
+                                            <img th:src="${#strings.startsWith(c.imagePath, 'http') ? c.imagePath : '/uploads/' + c.imagePath}" alt="Garbage Image">
+                                        </div>
+                                    </td>
+                                    
+                                    <!-- Citizen Details -->
+                                    <td>
+                                        <div class="fw-bold text-dark" th:text="${c.citizen.name}">Citizen Name</div>
+                                        <small class="text-muted d-block" th:text="${c.phone}">Phone</small>
+                                    </td>
+                                    
+                                    <!-- Area & Date -->
+                                    <td>
+                                        <div class="fw-medium text-dark" th:text="${c.area}">Area Name</div>
+                                        <small class="text-muted" th:text="${#temporals.format(c.date, 'dd MMM yyyy, hh:mm a')}">Date</small>
+                                    </td>
+                                    
+                                    <!-- Status Badge -->
+                                    <td>
+                                        <span th:class="'badge-' + ${#strings.toLowerCase(c.status)}" th:text="${c.status}">PENDING</span>
+                                    </td>
+                                    
+                                    <!-- Assignment / Rejection Forms -->
+                                    <td>
+                                        <!-- Pending: Show Inline Assignment Form and Rejection Option -->
+                                        <div th:if="${'PENDING'.equals(c.status)}" class="d-flex flex-column gap-2">
+                                            <!-- Assignment -->
+                                            <form th:action="@{/admin/assign-worker}" method="post" class="d-flex gap-1 align-items-center">
+                                                <input type="hidden" name="complaintId" th:value="${c.id}">
+                                                <select name="workerId" class="form-select form-select-sm" style="min-width: 140px; font-size: 0.8rem;" required>
+                                                    <option value="" disabled selected>Assign Worker</option>
+                                                    <option th:each="w : ${workers}" th:value="${w.id}" th:text="${w.name} + ' (' + ${w.assignedArea} + ')'"></option>
+                                                </select>
+                                                <select name="priority" class="form-select form-select-sm" style="font-size: 0.8rem; width: 85px;" required>
+                                                    <option value="Low">Low</option>
+                                                    <option value="Medium" selected>Medium</option>
+                                                    <option value="High">High</option>
+                                                </select>
+                                                <button type="submit" class="btn btn-sm btn-success" title="Assign Worker"><i class="bi bi-person-plus-fill"></i></button>
+                                            </form>
+                                            
+                                            <!-- Rejection -->
+                                            <form th:action="@{/admin/update-status}" method="post" class="d-flex gap-1 align-items-center">
+                                                <input type="hidden" name="complaintId" th:value="${c.id}">
+                                                <input type="hidden" name="status" value="REJECTED">
+                                                <input type="text" name="remarks" placeholder="Rejection reason..." class="form-control form-control-sm" style="font-size: 0.8rem; min-width: 140px;" required>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject"><i class="bi bi-x-circle"></i></button>
+                                            </form>
+                                        </div>
+
+                                        <!-- Already Assigned: Show assigned worker details -->
+                                        <div th:if="${!'PENDING'.equals(c.status) && c.worker != null}">
+                                            <div class="fw-bold text-dark" th:text="${c.worker.name}">Worker Name</div>
+                                            <small class="text-muted d-block" th:text="'Phone: ' + ${c.worker.phone}">Phone</small>
+                                            <small class="text-dark d-block">Priority: 
+                                                <span class="badge bg-danger p-1 fs-xs" th:if="${c.priority == 'High'}">High</span>
+                                                <span class="badge bg-warning text-dark p-1 fs-xs" th:if="${c.priority == 'Medium'}">Medium</span>
+                                                <span class="badge bg-info text-dark p-1 fs-xs" th:if="${c.priority == 'Low' || c.priority == null}">Low</span>
+                                            </small>
+                                        </div>
+                                        
+                                        <!-- Rejected State -->
+                                        <div th:if="${'REJECTED'.equals(c.status)}">
+                                            <small class="text-danger fw-bold d-block">Rejection Remarks:</small>
+                                            <small class="text-muted" th:text="${c.remarks}">Spam details</small>
+                                        </div>
+                                    </td>
+                                    
+                                    <!-- Actions -->
+                                    <td class="text-end">
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <a th:href="@{'/admin/complaints/' + ${c.id}}" class="btn btn-sm btn-success rounded-pill" title="View Details">
+                                                <i class="bi bi-eye-fill"></i> Details
+                                            </a>
+                                            <a th:href="@{'/admin/delete-complaint/' + ${c.id}}" onclick="return confirm('Are you sure you want to delete this complaint record permanently?');" class="btn btn-sm btn-outline-danger rounded-pill" title="Delete Permanent">
+                                                <i class="bi bi-trash3-fill"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    </div>
+
+                    <!-- Pagination -->
+                    <div th:if="${totalPages > 1}" class="d-flex justify-content-between align-items-center mt-4">
+                        <small class="text-muted">Showing page <span th:text="${currentPage + 1}"></span> of <span th:text="${totalPages}"></span> (<span th:text="${totalItems}"></span> items)</small>
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                <a class="page-link" th:href="@{/admin/manage-complaints(page=${currentPage - 1}, query=${query}, status=${status}, sort=${sort})}">Previous</a>
+                            </li>
+                            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i} ? 'active'">
+                                <a class="page-link" th:href="@{/admin/manage-complaints(page=${i}, query=${query}, status=${status}, sort=${sort})}" th:text="${i + 1}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                                <a class="page-link" th:href="@{/admin/manage-complaints(page=${currentPage + 1}, query=${query}, status=${status}, sort=${sort})}">Next</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="text-center py-5" th:if="${#lists.isEmpty(complaints)}">
+                        <div class="fs-1 text-muted"><i class="bi bi-clipboard-x-fill"></i></div>
+                        <h5 class="fw-bold mt-3 text-dark">No complaints found</h5>
+                        <p class="text-muted">No complaints match your query or filter criteria.</p>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments :: footer}"></footer>
+
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Complaint Details')}"></head>
+<body class="bg-light">
+
+    <!-- Shared Navigation -->
+    <nav th:replace="~{fragments :: navbar}"></nav>
+
+    <!-- Main Content Grid -->
+    <div class="container-fluid py-4">
+        <div class="row">
+            
+            <!-- Shared Sidebar -->
+            <div th:replace="~{fragments :: sidebar('my-complaints')}"></div>
+            
+            <!-- Details Content -->
+            <main class="col-lg-9 col-md-8 px-md-4">
+                
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+                    <div>
+                        <h1 class="h2 fw-bold mb-1">Complaint Tracking Status</h1>
+                        <p class="text-muted">Viewing details for <span class="font-monospace fw-bold text-success" th:text="${complaint.complaintId}">COMP-0000</span></p>
+                    </div>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <a th:href="@{/user/my-complaints}" class="btn btn-outline-success rounded-pill btn-sm px-3">
+                            <i class="bi bi-arrow-left me-1"></i>Back to My List
+                        </a>
+                    </div>
+                </div>
+
+                <div class="row g-4 animate-fade-in">
+                    
+                    <!-- Left Column: Details -->
+                    <div class="col-lg-7">
+                        <div class="glass-card bg-white p-4 border border-light shadow-sm mb-4">
+                            <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+                                <div>
+                                    <h4 class="fw-bold text-dark mb-1" th:text="${complaint.title}">Complaint Title</h4>
+                                    <span class="badge bg-light text-dark font-monospace text-capitalize" th:text="${complaint.category}">Organic</span>
+                                </div>
+                                <div>
+                                    <span th:class="'badge-' + ${#strings.toLowerCase(complaint.status)}" th:text="${complaint.status}">PENDING</span>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted small fw-bold text-uppercase">Area / Locality</h6>
+                                    <p class="text-dark fw-medium" th:text="${complaint.area}">Green Garden</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted small fw-bold text-uppercase">Nearest Landmark</h6>
+                                    <p class="text-dark fw-medium" th:text="${complaint.landmark != null && !complaint.landmark.isEmpty()} ? ${complaint.landmark} : 'Not specified'">Near landmark</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted small fw-bold text-uppercase">Contact phone</h6>
+                                    <p class="text-dark fw-medium" th:text="${complaint.phone}">9876543210</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted small fw-bold text-uppercase">Date Reported</h6>
+                                    <p class="text-dark fw-medium" th:text="${#temporals.format(complaint.date, 'dd MMM yyyy, hh:mm a')}">Date</p>
+                                </div>
+                                
+                                <div class="col-12 border-top pt-3">
+                                    <h6 class="text-muted small fw-bold text-uppercase">Description</h6>
+                                    <p class="text-dark" th:text="${complaint.description != null && !complaint.description.isEmpty()} ? ${complaint.description} : 'No description provided.'">Description content</p>
+                                </div>
+
+                                <!-- GPS Mapping Details -->
+                                <div class="col-12 border-top pt-3">
+                                    <h6 class="text-muted small fw-bold text-uppercase"><i class="bi bi-geo-alt-fill text-success"></i> GPS Coordinates</h6>
+                                    <div class="row g-2" th:if="${complaint.latitude != null && complaint.longitude != null}">
+                                        <div class="col-sm-6">
+                                            <small class="text-muted">Latitude:</small> <span class="font-monospace text-dark" id="mapLat" th:text="${complaint.latitude}">0.00</span>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <small class="text-muted">Longitude:</small> <span class="font-monospace text-dark" id="mapLng" th:text="${complaint.longitude}">0.00</span>
+                                        </div>
+                                        <div class="col-12 mt-2">
+                                            <div id="complaintMap" style="height: 250px; width: 100%; border-radius: 8px; z-index: 1;"></div>
+                                        </div>
+                                    </div>
+                                    <div th:if="${complaint.latitude == null || complaint.longitude == null}">
+                                        <p class="text-muted mb-0 small">No GPS coordinates captured for this report.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Assigned Worker Card -->
+                        <div class="glass-card bg-white p-4 border border-light shadow-sm">
+                            <h5 class="fw-bold text-dark border-bottom pb-3 mb-3"><i class="bi bi-person-badge text-success me-2"></i>Sanitation Team Assignment</h5>
+                            <div class="row g-3" th:if="${complaint.worker != null}">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted small fw-bold text-uppercase">Assigned Worker</h6>
+                                    <p class="text-dark fw-medium mb-0" th:text="${complaint.worker.name}">Rajesh Kumar</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted small fw-bold text-uppercase">Contact Support</h6>
+                                    <p class="text-dark fw-medium mb-0" th:text="${complaint.worker.phone}">9876543210</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted small fw-bold text-uppercase">Assignment Priority</h6>
+                                    <span class="badge bg-danger rounded-pill px-3 py-1 fs-7" th:if="${complaint.priority == 'High'}" th:text="${complaint.priority}">High</span>
+                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fs-7" th:if="${complaint.priority == 'Medium'}" th:text="${complaint.priority}">Medium</span>
+                                    <span class="badge bg-info text-dark rounded-pill px-3 py-1 fs-7" th:if="${complaint.priority == 'Low' || complaint.priority == null}" th:text="${complaint.priority != null ? complaint.priority : 'Low'}">Low</span>
+                                </div>
+                                <div class="col-md-6" th:if="${complaint.remarks != null && !complaint.remarks.isEmpty()}">
+                                    <h6 class="text-muted small fw-bold text-uppercase">Worker Remarks / Updates</h6>
+                                    <p class="text-muted small mb-0" th:text="${complaint.remarks}">Cleaning progress update</p>
+                                </div>
+                            </div>
+                            <div th:if="${complaint.worker == null}" class="text-center py-3">
+                                <p class="text-muted mb-0"><i class="bi bi-hourglass-split me-1"></i> Awaiting worker assignment by municipal admins.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Before / After Images -->
+                    <div class="col-lg-5">
+                        
+                        <!-- Before Cleaning Image -->
+                        <div class="glass-card bg-white p-4 border border-light shadow-sm mb-4 text-center">
+                            <h6 class="fw-bold text-danger text-uppercase mb-3"><i class="bi bi-exclamation-triangle me-2"></i>Garbage Reported (Before Cleaning)</h6>
+                            <div class="rounded-3 overflow-hidden bg-light" style="max-height: 300px;">
+                                <img th:src="${#strings.startsWith(complaint.imagePath, 'http') ? complaint.imagePath : '/uploads/' + complaint.imagePath}" alt="Before Cleaning" class="img-fluid details-img w-100 h-100" style="object-fit: cover;">
+                            </div>
+                        </div>
+
+                        <!-- After Cleaning Image (Only shown if COMPLETED) -->
+                        <div class="glass-card bg-white p-4 border border-light shadow-sm text-center" th:if="${'COMPLETED'.equals(complaint.status)}">
+                            <h6 class="fw-bold text-success text-uppercase mb-3"><i class="bi bi-check-circle-fill me-2"></i>Cleaned Spot (After Cleaning)</h6>
+                            <div class="rounded-3 overflow-hidden bg-light" style="max-height: 300px;">
+                                <img th:src="${#strings.startsWith(complaint.afterCleaningImage, 'http') ? complaint.afterCleaningImage : '/uploads/' + complaint.afterCleaningImage}" alt="After Cleaning" class="img-fluid details-img w-100 h-100" style="object-fit: cover;">
+                            </div>
+                        </div>
+                        
+                        <div class="glass-card bg-white p-4 border border-light shadow-sm text-center" th:if="${!'COMPLETED'.equals(complaint.status)}">
+                            <h6 class="fw-bold text-muted text-uppercase mb-3"><i class="bi bi-clock me-2"></i>Resolution Status</h6>
+                            <div class="p-4 bg-light rounded-3">
+                                <div class="spinner-grow text-success mb-2" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <h6 class="fw-bold text-dark">Cleaning in Progress</h6>
+                                <p class="text-muted small mb-0">Our worker will upload the 'After Cleaning' photo once the waste is removed from the spot.</p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments :: footer}"></footer>
+
+    <script th:if="${complaint.latitude != null && complaint.longitude != null}">
+        document.addEventListener('DOMContentLoaded', function() {
+            var lat = parseFloat(document.getElementById('mapLat').innerText);
+            var lng = parseFloat(document.getElementById('mapLng').innerText);
+            var map = L.map('complaintMap').setView([lat, lng], 16);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup('Garbage Location')
+                .openPopup();
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('My Complaints')}"></head>
+<body class="bg-light">
+
+    <!-- Shared Navigation -->
+    <nav th:replace="~{fragments :: navbar}"></nav>
+
+    <!-- Main Content Grid -->
+    <div class="container-fluid py-4">
+        <div class="row">
+            
+            <!-- Shared Sidebar -->
+            <div th:replace="~{fragments :: sidebar('my-complaints')}"></div>
+            
+            <!-- List Content -->
+            <main class="col-lg-9 col-md-8 px-md-4">
+                
+                <!-- Welcome Banner -->
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+                    <div>
+                        <h1 class="h2 fw-bold mb-1">My Complaints</h1>
+                        <p class="text-muted">Track the progress of your submitted sanitation issues</p>
+                    </div>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <a th:href="@{/user/raise-complaint}" class="btn btn-success rounded-pill">
+                            <i class="bi bi-plus-lg me-2"></i>Report New Waste Spot
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Registration Success Banner -->
+                <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-4 animate-fade-in" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i><strong>Complaint Submitted Successfully!</strong> Our municipal supervisors will assign a worker shortly.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <!-- Complaints Table -->
+                <div class="glass-card bg-white p-4 border border-light shadow-sm animate-fade-in">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-card-list text-success me-2"></i>History of Reports</h5>
+                        <span class="badge bg-success rounded-pill px-3 py-1 font-monospace" th:text="${#lists.size(complaints)} + ' Total'">0 Total</span>
+                    </div>
+
+                    <div class="table-responsive" th:if="${not #lists.isEmpty(complaints)}">
+                        <table class="table custom-table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Complaint ID</th>
+                                    <th>Image</th>
+                                    <th>Complaint Details</th>
+                                    <th>Locality / Landmark</th>
+                                    <th>Date Submitted</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="c : ${complaints}">
+                                    <td class="font-monospace fw-bold text-dark" th:text="${c.complaintId}">COMP-123456</td>
+                                    <td>
+                                        <div class="complaint-img-container">
+                                            <img th:src="${#strings.startsWith(c.imagePath, 'http') ? c.imagePath : '/uploads/' + c.imagePath}" alt="Garbage Image">
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark" th:text="${c.title}">Title</div>
+                                        <span class="badge bg-light text-dark font-monospace text-capitalize" th:text="${c.category}">Organic</span>
+                                    </td>
+                                    <td>
+                                        <div class="text-dark" th:text="${c.area}">Area Name</div>
+                                        <small class="text-muted" th:text="${c.landmark != null && !c.landmark.isEmpty()} ? 'Near: ' + ${c.landmark} : 'No Landmark'"></small>
+                                    </td>
+                                    <td th:text="${#temporals.format(c.date, 'dd MMM yyyy, hh:mm a')}">Date</td>
+                                    <td>
+                                        <span th:class="'badge-' + ${#strings.toLowerCase(c.status)}" th:text="${c.status}">PENDING</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a th:href="@{'/user/complaints/' + ${c.id}}" class="btn btn-sm btn-success rounded-pill px-3">
+                                            <i class="bi bi-eye-fill me-1"></i>Track Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="text-center py-5" th:if="${#lists.isEmpty(complaints)}">
+                        <div class="fs-1 text-muted"><i class="bi bi-inboxes-fill"></i></div>
+                        <h5 class="fw-bold mt-3 text-dark">No complaints reported yet</h5>
+                        <p class="text-muted">All clean here! If you spot any garbage accumulating in public areas, please file a report.</p>
+                        <a th:href="@{/user/raise-complaint}" class="btn btn-success rounded-pill mt-2">
+                            <i class="bi bi-plus-lg me-2"></i>Report First Garbage Area
+                        </a>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments :: footer}"></footer>
+
+</body>
+</html>

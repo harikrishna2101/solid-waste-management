@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Admin Dashboard')}"></head>
+<body class="bg-light">
+
+    <!-- Shared Navigation -->
+    <nav th:replace="~{fragments :: navbar}"></nav>
+
+    <!-- Main Content Grid -->
+    <div class="container-fluid py-4">
+        <div class="row">
+            
+            <!-- Shared Sidebar -->
+            <div th:replace="~{fragments :: sidebar('dashboard')}"></div>
+            
+            <!-- Admin Content -->
+            <main class="col-lg-9 col-md-8 px-md-4">
+                
+                <!-- Title Header -->
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+                    <div>
+                        <h1 class="h2 fw-bold mb-1">Municipal Admin Portal</h1>
+                        <p class="text-muted">Manage complaints, assign sanitation workers, and audit completed reports.</p>
+                    </div>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <a th:href="@{/admin/export-complaints}" class="btn btn-outline-success rounded-pill btn-sm px-3">
+                            <i class="bi bi-filetype-csv me-1"></i>Download Report (CSV)
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Admin Metrics Row -->
+                <div class="row g-3 mb-4 animate-fade-in">
+                    <!-- Total -->
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <div class="glass-card bg-white p-3 border border-light text-center">
+                            <div class="fs-2 text-primary"><i class="bi bi-file-earmark-text-fill"></i></div>
+                            <div class="stat-card-title mt-2">Total Tickets</div>
+                            <div class="stat-card-value" th:text="${totalComplaints}">0</div>
+                        </div>
+                    </div>
+                    <!-- Pending -->
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <div class="glass-card bg-white p-3 border border-light text-center">
+                            <div class="fs-2 text-warning"><i class="bi bi-hourglass-split"></i></div>
+                            <div class="stat-card-title mt-2">Unassigned</div>
+                            <div class="stat-card-value" th:text="${pending}">0</div>
+                        </div>
+                    </div>
+                    <!-- Assigned -->
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <div class="glass-card bg-white p-3 border border-light text-center">
+                            <div class="fs-2 text-info"><i class="bi bi-person-gear"></i></div>
+                            <div class="stat-card-title mt-2">In Progress</div>
+                            <div class="stat-card-value" th:text="${assigned}">0</div>
+                        </div>
+                    </div>
+                    <!-- Completed -->
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <div class="glass-card bg-white p-3 border border-light text-center">
+                            <div class="fs-2 text-success"><i class="bi bi-check-circle-fill"></i></div>
+                            <div class="stat-card-title mt-2">Resolved</div>
+                            <div class="stat-card-value" th:text="${completed}">0</div>
+                        </div>
+                    </div>
+                    <!-- Workers -->
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <div class="glass-card bg-white p-3 border border-light text-center">
+                            <div class="fs-2 text-dark"><i class="bi bi-people-fill"></i></div>
+                            <div class="stat-card-title mt-2">Active Staff</div>
+                            <div class="stat-card-value" th:text="${workersCount}">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Complaints Panel -->
+                <div class="glass-card bg-white p-4 border border-light shadow-sm animate-fade-in">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-clock-history text-success me-2"></i>Incoming Waste Reports</h5>
+                        <a th:href="@{/admin/manage-complaints}" class="text-success text-decoration-none fw-bold small">Audit All Tickets <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                    
+                    <div class="table-responsive" th:if="${not #lists.isEmpty(recentComplaints)}">
+                        <table class="table custom-table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Image</th>
+                                    <th>Citizen Detail</th>
+                                    <th>Area Name</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="c : ${recentComplaints}">
+                                    <td class="font-monospace fw-bold text-dark" th:text="${c.complaintId}">COMP-123456</td>
+                                    <td>
+                                        <div class="complaint-img-container">
+                                            <img th:src="${#strings.startsWith(c.imagePath, 'http') ? c.imagePath : '/uploads/' + c.imagePath}" alt="Garbage Image">
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark" th:text="${c.citizen.name}">Citizen Name</div>
+                                        <small class="text-muted" th:text="${c.citizen.phone}">Phone</small>
+                                    </td>
+                                    <td th:text="${c.area}">Area</td>
+                                    <td>
+                                        <span class="badge bg-danger rounded-pill" th:if="${c.priority == 'High'}" th:text="${c.priority}">High</span>
+                                        <span class="badge bg-warning text-dark rounded-pill" th:if="${c.priority == 'Medium'}" th:text="${c.priority}">Medium</span>
+                                        <span class="badge bg-info text-dark rounded-pill" th:if="${c.priority == 'Low' || c.priority == null}" th:text="${c.priority != null ? c.priority : 'Low'}">Low</span>
+                                    </td>
+                                    <td>
+                                        <span th:class="'badge-' + ${#strings.toLowerCase(c.status)}" th:text="${c.status}">PENDING</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a th:href="@{'/admin/complaints/' + ${c.id}}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                            <i class="bi bi-clipboard-check me-1"></i>Review
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="text-center py-5" th:if="${#lists.isEmpty(recentComplaints)}">
+                        <div class="fs-1 text-muted"><i class="bi bi-check-lg"></i></div>
+                        <h5 class="fw-bold mt-3 text-dark">Clear Queue!</h5>
+                        <p class="text-muted">No garbage complaints have been registered by citizens yet.</p>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments :: footer}"></footer>
+
+</body>
+</html>

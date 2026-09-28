@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Task Review')}"></head>
+<body class="bg-light">
+
+    <!-- Shared Navigation -->
+    <nav th:replace="~{fragments :: navbar}"></nav>
+
+    <!-- Main Grid -->
+    <div class="container-fluid py-4">
+        <div class="row">
+            
+            <!-- Shared Sidebar -->
+            <div th:replace="~{fragments :: sidebar('dashboard')}"></div>
+            
+            <!-- Worker Action Content -->
+            <main class="col-lg-9 col-md-8 px-md-4">
+                
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+                    <div>
+                        <h1 class="h2 fw-bold mb-1">Job Details & Execution</h1>
+                        <p class="text-muted">Review GPS coordinates and report job completion</p>
+                    </div>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <a th:href="@{/worker/dashboard}" class="btn btn-outline-success rounded-pill btn-sm px-3">
+                            <i class="bi bi-arrow-left me-1"></i>Back to My Board
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Query Errors -->
+                <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show rounded-3 mb-4" role="alert">
+                    <i class="bi bi-x-circle-fill me-2"></i><strong>Error:</strong> 
+                    <span th:text="${'image_required'.equals(param.error[0])} ? 'After cleaning verification image is required to complete the ticket!' : ${param.error[0]}">Error Message</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div class="row g-4 animate-fade-in">
+                    
+                    <!-- Left Column: Location & Action Forms -->
+                    <div class="col-lg-7">
+                        <!-- Details -->
+                        <div class="glass-card bg-white p-4 border border-light shadow-sm mb-4">
+                            <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+                                <div>
+                                    <h4 class="fw-bold text-dark mb-1" th:text="'Ticket ' + ${complaint.complaintId}">COMP-0000</h4>
+                                    <span class="badge bg-light text-dark font-monospace text-capitalize" th:text="${complaint.category}">Organic</span>
+                                </div>
+                                <div>
+                                    <span th:class="'badge-' + ${#strings.toLowerCase(complaint.status)}" th:text="${complaint.status}">ASSIGNED</span>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted small fw-bold text-uppercase">Area Locality</h6>
+                                    <p class="text-dark fw-bold mb-0" th:text="${complaint.area}">Green Valley Area</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted small fw-bold text-uppercase">Nearest Landmark</h6>
+                                    <p class="text-dark fw-medium mb-0" th:text="${complaint.landmark != null && !complaint.landmark.isEmpty()} ? ${complaint.landmark} : 'No Landmark'"></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted small fw-bold text-uppercase">Citizen Phone</h6>
+                                    <p class="text-dark fw-medium mb-0">
+                                        <a th:href="'tel:' + ${complaint.phone}" class="text-success text-decoration-none fw-bold">
+                                            <i class="bi bi-telephone-outbound-fill me-1"></i> <span th:text="${complaint.phone}">9876543210</span>
+                                        </a>
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted small fw-bold text-uppercase">Date Assigned</h6>
+                                    <p class="text-dark fw-medium mb-0" th:text="${#temporals.format(complaint.date, 'dd MMM yyyy, hh:mm a')}">Date</p>
+                                </div>
+                                
+                                <div class="col-12 border-top pt-3">
+                                    <h6 class="text-muted small fw-bold text-uppercase">Citizen Report Description</h6>
+                                    <p class="text-muted small mb-0" th:text="${complaint.description}">Description text</p>
+                                </div>
+
+                                <!-- GPS Mapping Details with Directions trigger -->
+                                <div class="col-12 border-top pt-3" th:if="${complaint.latitude != null && complaint.longitude != null}">
+                                    <h6 class="text-muted small fw-bold text-uppercase"><i class="bi bi-geo-alt-fill text-success"></i> GPS Mapping Navigation</h6>
+                                    <div class="p-3 bg-light rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                        <div>
+                                            <small class="text-muted">Lat:</small> <span class="font-monospace text-dark fw-medium me-3" id="mapLat" th:text="${complaint.latitude}">0.00</span>
+                                            <small class="text-muted">Lng:</small> <span class="font-monospace text-dark fw-medium" id="mapLng" th:text="${complaint.longitude}">0.00</span>
+                                        </div>
+                                        <a th:href="'https://www.google.com/maps/dir/?api=1&destination=' + ${complaint.latitude} + ',' + ${complaint.longitude}" target="_blank" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm">
+                                            <i class="bi bi-compass-fill me-1"></i> Get Directions
+                                        </a>
+                                    </div>
+                                    <div id="complaintMap" style="height: 250px; width: 100%; border-radius: 8px; z-index: 1;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Job Action Form -->
+                        <div class="glass-card bg-white p-4 border border-light shadow-sm">
+                            <h5 class="fw-bold text-success border-bottom pb-3 mb-3"><i class="bi bi-check2-square me-2"></i>Job Controller Actions</h5>
+                            
+                            <!-- State 1: ASSIGNED (Needs Start) -->
+                            <div th:if="${'ASSIGNED'.equals(complaint.status)}" class="text-center py-3">
+                                <p class="text-muted mb-4"><i class="bi bi-exclamation-circle-fill text-warning me-1"></i> You are dispatched to this ticket. Please click below when you arrive at the spot to start cleaning.</p>
+                                <form th:action="@{/worker/start-work}" method="post">
+                                    <input type="hidden" name="complaintId" th:value="${complaint.id}">
+                                    <button type="submit" class="btn btn-warning rounded-pill btn-lg px-5 fw-bold text-dark shadow-sm">
+                                        <i class="bi bi-play-fill me-2"></i>Start Cleanup Job
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- State 2: IN_PROGRESS (Needs Completion Upload) -->
+                            <div th:if="${'IN_PROGRESS'.equals(complaint.status)}">
+                                <form id="completeTaskForm" th:action="@{/worker/complete}" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" name="complaintId" th:value="${complaint.id}">
+                                    <input type="hidden" id="workerLat" name="workerLat">
+                                    <input type="hidden" id="workerLng" name="workerLng">
+                                    <div class="row g-3">
+                                        <!-- After Photo -->
+                                        <div class="col-12">
+                                            <label for="afterImage" class="form-label fw-bold">Upload After-Cleaning Image <span class="text-danger">*</span></label>
+                                            <input type="file" class="form-control" id="afterImage" name="afterImage" accept="image/*" required>
+                                            <small class="text-muted d-block mt-1">Upload proof showing the waste is completely removed. (Max 10MB)</small>
+                                        </div>
+                                        <!-- Remarks -->
+                                        <div class="col-12">
+                                            <label for="remarks" class="form-label fw-bold">Completion Remarks</label>
+                                            <textarea class="form-control" id="remarks" name="remarks" rows="3" placeholder="Describe the cleaning outcome (e.g. Spot fully swept and disinfected with bleach)..."></textarea>
+                                        </div>
+                                        
+                                        <div class="col-12 mt-3 text-end">
+                                            <button type="submit" id="submitCompleteBtn" class="btn btn-success rounded-pill px-5 py-2 fw-bold">
+                                                <i class="bi bi-cloud-arrow-up-fill me-2"></i>Upload & Resolve Ticket
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- State 3: COMPLETED -->
+                            <div th:if="${'COMPLETED'.equals(complaint.status)}" class="p-3 bg-light rounded-3">
+                                <h6 class="fw-bold text-success"><i class="bi bi-check-circle-fill me-2"></i>Job Successfully Resolved</h6>
+                                <p class="text-muted small mb-2" th:if="${complaint.remarks != null}" th:text="'Remarks: ' + ${complaint.remarks}">Remarks content</p>
+                                <p class="text-muted small mb-0">No further actions are required for this ticket.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Images Review -->
+                    <div class="col-lg-5">
+                        
+                        <!-- Before Cleaning Image -->
+                        <div class="glass-card bg-white p-4 border border-light shadow-sm mb-4 text-center">
+                            <h6 class="fw-bold text-danger text-uppercase mb-3"><i class="bi bi-exclamation-triangle-fill me-2"></i>Accumulated Garbage (Before)</h6>
+                            <div class="rounded-3 overflow-hidden bg-light" style="max-height: 300px;">
+                                <img th:src="${#strings.startsWith(complaint.imagePath, 'http') ? complaint.imagePath : '/uploads/' + complaint.imagePath}" alt="Before Cleaning" class="img-fluid details-img w-100 h-100" style="object-fit: cover;">
+                            </div>
+                        </div>
+
+                        <!-- After Cleaning Image -->
+                        <div class="glass-card bg-white p-4 border border-light shadow-sm text-center" th:if="${'COMPLETED'.equals(complaint.status)}">
+                            <h6 class="fw-bold text-success text-uppercase mb-3"><i class="bi bi-check-circle-fill me-2"></i>Resolved Spot (After)</h6>
+                            <div class="rounded-3 overflow-hidden bg-light" style="max-height: 300px;">
+                                <img th:src="${#strings.startsWith(complaint.afterCleaningImage, 'http') ? complaint.afterCleaningImage : '/uploads/' + complaint.afterCleaningImage}" alt="After Cleaning" class="img-fluid details-img w-100 h-100" style="object-fit: cover;">
+                            </div>
+                        </div>
+                        
+                        <!-- Cleaning In Progress Alert -->
+                        <div class="glass-card bg-white p-4 border border-light shadow-sm text-center" th:if="${!'COMPLETED'.equals(complaint.status)}">
+                            <h6 class="fw-bold text-muted text-uppercase mb-3"><i class="bi bi-tools me-2"></i>Cleaning Audit Checklist</h6>
+                            <div class="p-3 bg-light rounded-3 text-start font-monospace small">
+                                <div class="mb-2"><i class="bi bi-check2-square text-success"></i> Arrive at target GPS area</div>
+                                <div class="mb-2"><i class="bi bi-check2-square text-success"></i> Verify garbage scope</div>
+                                <div class="mb-2"><i class="bi bi-square text-muted"></i> Clear and sweep spot</div>
+                                <div class="mb-0"><i class="bi bi-square text-muted"></i> Take verification photograph</div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments :: footer}"></footer>
+
+    <script th:if="${complaint.latitude != null && complaint.longitude != null}">
+        document.addEventListener('DOMContentLoaded', function() {
+            var lat = parseFloat(document.getElementById('mapLat').innerText);
+            var lng = parseFloat(document.getElementById('mapLng').innerText);
+            var map = L.map('complaintMap').setView([lat, lng], 16);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup('Garbage Location')
+                .openPopup();
+        });
+    </script>
+    
+    <script th:if="${'IN_PROGRESS'.equals(complaint.status)}">
+        document.addEventListener('DOMContentLoaded', function() {
+            var form = document.getElementById('completeTaskForm');
+            if(form) {
+                form.addEventListener('submit', function(e) {
+                    if (!document.getElementById('workerLat').value) {
+                        e.preventDefault();
+                        var btn = document.getElementById('submitCompleteBtn');
+                        var originalText = btn.innerHTML;
+                        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Verifying Location...';
+                        btn.disabled = true;
+
+                        if (navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition(function(position) {
+                                document.getElementById('workerLat').value = position.coords.latitude;
+                                document.getElementById('workerLng').value = position.coords.longitude;
+                                form.submit();
+                            }, function(error) {
+                                alert("Unable to fetch your location. Please ensure location services are enabled to complete this task.");
+                                btn.innerHTML = originalText;
+                                btn.disabled = false;
+                            }, { timeout: 10000, enableHighAccuracy: true });
+                        } else {
+                            alert("Geolocation is not supported by your browser.");
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>
